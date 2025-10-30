@@ -120,11 +120,11 @@ async function showDetails(id) {
       <p><strong>Genres:</strong> ${genres}</p>
       <p><strong>Overview:</strong><br>${movie.overview || 'No overview available.'}</p>
     `;
-    
-    const modal = new bootstrap.Modal(document.getElementById('movieModal'));
+
+    const modal = new window.bootstrap.Modal(document.getElementById('movieModal'));
     modal.show();
   } catch (err) {
     console.error(err);
-    alert('Failed to load movie details');
+    alert('Calm down, I am working on It!');
   }
 }
