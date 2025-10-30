@@ -76,7 +76,7 @@ function displayMovies(movies) {
   moviesGrid.innerHTML = movies.map(movie => {
     const poster = movie.poster_path 
       ? `${IMAGE_BASE_URL}/w500${movie.poster_path}`
-      : 'https://via.placeholder.com/500x750/1a1a1a/fff?text=No+Image';
+      : './assets/Placeholder_movie_poster.jpg';
     const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
     const year = movie.release_date ? new Date(movie.release_date).getFullYear() : '';
     
@@ -106,7 +106,7 @@ async function showDetails(id) {
     
     const backdrop = movie.backdrop_path 
       ? `${IMAGE_BASE_URL}/original${movie.backdrop_path}`
-      : `${IMAGE_BASE_URL}/w500${movie.poster_path}`;
+      : './assets/Placeholder_movie_backdrop.jpg';
     const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
     const runtime = movie.runtime ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m` : '';
     const genres = movie.genres.map(g => g.name).join(', ');
