@@ -1,5 +1,7 @@
 const API_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxY2RmN2QxZTRiYzQwNDljMWU0ZmIzNTkyNDc2M2JjYyIsIm5iZiI6MTc2MTI5NjgwNy41MTcsInN1YiI6IjY4ZmI0MWE3NWFmMTg3MDQxZjk3Yzc0NiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.5YY2heYOTbuBRxtVuFuDn8I_CH41ceGz17qTeoSaq4g';
 const BASE_URL = 'https://api.themoviedb.org/3';
+let LOAD_URL = 'https://api.themoviedb.org/3/movie';
+let SEARCH_URL = 'https://api.themoviedb.org/3/search/movie';
 const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p';
 
 const moviesGrid = document.getElementById('moviesGrid');
@@ -8,6 +10,7 @@ const searchForm = document.getElementById('searchForm');
 const searchInput = document.getElementById('searchInput');
 const categoryTitle = document.getElementById('categoryTitle');
 const categoryButtons = document.querySelectorAll('[data-category]');
+const searchParam = document.getElementById('search_param');
 
 const options = {
   headers: {
@@ -37,6 +40,12 @@ if (!currentUser) {
 
 loadMovies('popular');
 
+ searchParam.addEventListener('change', function() {
+        searchInput.placeholder = `Search for ${searchParam.value}s......`;
+        SEARCH_URL = `https://api.themoviedb.org/3/search/${searchParam.value}`;
+        LOAD_URL = `https://api.themoviedb.org/3/${searchParam.value}`;
+    });
+
 categoryButtons.forEach(btn => {
   btn.addEventListener('click', () => {
     const category = btn.dataset.category;
@@ -58,7 +67,7 @@ async function loadMovies(category) {
   categoryTitle.textContent = category === 'popular' ? 'Popular Movies' : 'Top Rated Movies';
   
   try {
-    const res = await fetch(`${BASE_URL}/movie/${category}?language=en-US&page=1`, options);
+    const res = await fetch(`${LOAD_URL}/${category}?language=en-US&page=1`, options);
     const data = await res.json();
     displayMovies(data.results);
   } catch (err) {
@@ -75,7 +84,7 @@ async function searchMovies(query) {
   categoryTitle.textContent = `Search: "${query}"`;
   
   try {
-    const res = await fetch(`${BASE_URL}/search/movie?query=${query}&language=en-US&page=1`, options);
+    const res = await fetch(`${SEARCH_URL}?query=${query}&language=en-US&page=1`, options);
     const data = await res.json();
     displayMovies(data.results);
   } catch (err) {
@@ -98,6 +107,7 @@ function displayMovies(movies) {
       : './assets/Placeholder_movie_poster.jpg';
     const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
     const year = movie.release_date ? new Date(movie.release_date).getFullYear() : '';
+    const movieName = movie.title ? movie.name : 'N/A';
     
     return `
       <div class="col">
