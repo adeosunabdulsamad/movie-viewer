@@ -16,6 +16,25 @@ const options = {
   }
 };
 
+const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+const userSection = document.getElementById('userSection');
+
+if (!currentUser) {
+  window.location.href = 'auth.html';
+} else {
+  userSection.innerHTML = `
+    <span class="text-white me-3">${currentUser.name}</span>
+    <button class="btn btn-sm btn-outline-danger" id="logoutBtn">
+      <i class="bi bi-box-arrow-right"></i> Logout
+    </button>
+  `;
+  
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem('currentUser');
+    window.location.href = 'auth.html';
+  });
+}
+
 loadMovies('popular');
 
 categoryButtons.forEach(btn => {
