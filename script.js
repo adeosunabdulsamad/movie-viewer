@@ -41,7 +41,7 @@ if (!currentUser) {
 loadMovies('popular');
 
  searchParam.addEventListener('change', function() {
-        searchInput.placeholder = `Search for ${searchParam.value}s......`;
+        searchInput.placeholder = `Search for ${searchParam.value}......`;
         SEARCH_URL = `https://api.themoviedb.org/3/search/${searchParam.value}`;
         LOAD_URL = `https://api.themoviedb.org/3/${searchParam.value}`;
     });
@@ -106,8 +106,9 @@ function displayMovies(movies) {
       ? `${IMAGE_BASE_URL}/w500${movie.poster_path}`
       : './assets/Placeholder_movie_poster.jpg';
     const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
-    const year = movie.release_date ? new Date(movie.release_date).getFullYear() : '';
-    const movieName = movie.title ? movie.name : 'N/A';
+    const releaseDate = movie.release_date || movie.first_air_date || '';
+    const year = releaseDate ? new Date(releaseDate).getFullYear() : '';
+    const movieName = movie.title || movie.name;
     
     return `
       <div class="col">
@@ -119,7 +120,7 @@ function displayMovies(movies) {
             </span>
           </div>
           <div class="card-body">
-            <h6 class="card-title">${movie.title}</h6>
+            <h6 class="card-title">${movieName}</h6>
             <p class="card-text text-muted small">${year}</p>
           </div>
         </div>
@@ -130,7 +131,7 @@ function displayMovies(movies) {
 
 async function showDetails(id) {
   try {
-    const res = await fetch(`${BASE_URL}/movie/${id}?language=en-US`, options);
+    const res = await fetch(`${LOAD_URL}/${id}?language=en-US`, options);
     const movie = await res.json();
     
     const backdrop = movie.backdrop_path 
@@ -144,8 +145,8 @@ async function showDetails(id) {
     document.getElementById('modalBody').innerHTML = `
       <img src="${backdrop}" class="img-fluid rounded mb-3" alt="${movie.title}">
       <p><strong>Rating:</strong> <span class="text-warning">${rating}/10</span></p>
-      <p><strong>Release:</strong> ${movie.release_date || 'N/A'}</p>
-      <p><strong>Runtime:</strong> ${runtime}</p>
+      <p><strong>Release:</strong> ${movie.release_date || movie.first_air_date || 'N/A'}</p>
+      <p><strong>Runtime:</strong> ${runtime || 'couple of years'}</p>
       <p><strong>Genres:</strong> ${genres}</p>
       <p><strong>Overview:</strong><br>${movie.overview || 'No overview available.'}</p>
     `;
