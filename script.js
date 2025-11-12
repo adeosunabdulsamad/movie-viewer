@@ -134,16 +134,39 @@ async function showDetails(id) {
     const res = await fetch(`${LOAD_URL}/${id}?language=en-US`, options);
     const movie = await res.json();
     
-    const backdrop = movie.backdrop_path 
-      ? `${IMAGE_BASE_URL}/original${movie.backdrop_path}`
-      : './assets/Placeholder_movie_backdrop.jpg';
+    const videosRes = await fetch(`${LOAD_URL}/${id}/videos?language=en-US`, options);
+    const videosData = await videosRes.json();
+    const trailer = videosData.results.find(vid => vid.type === 'Trailer' && vid.site === 'YouTube') 
+      || videosData.results.find(vid => vid.site === 'YouTube');
+    
     const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
     const runtime = movie.runtime ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}m` : '';
     const genres = movie.genres.map(g => g.name).join(', ');
+    const title = movie.title || movie.name;
     
-    document.getElementById('modalTitle').textContent = movie.title;
+    document.getElementById('modalTitle').textContent = title;
+    
+    let mediaContent = '';
+    if (trailer) {
+      mediaContent = `
+        <div class="ratio ratio-16x9 mb-3">
+          <iframe src="https://www.youtube.com/embed/${trailer.key}" 
+                  title="${title} Trailer" 
+                  frameborder="0" 
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                  allowfullscreen>
+          </iframe>
+        </div>
+      `;
+    } else {
+      const backdrop = movie.backdrop_path 
+        ? `${IMAGE_BASE_URL}/original${movie.backdrop_path}`
+        : './assets/Placeholder_movie_backdrop.jpg';
+      mediaContent = `<img src="${backdrop}" class="img-fluid rounded mb-3" alt="${title}">`;
+    }
+    
     document.getElementById('modalBody').innerHTML = `
-      <img src="${backdrop}" class="img-fluid rounded mb-3" alt="${movie.title}">
+      ${mediaContent}
       <p><strong>Rating:</strong> <span class="text-warning">${rating}/10</span></p>
       <p><strong>Release:</strong> ${movie.release_date || movie.first_air_date || 'N/A'}</p>
       <p><strong>Runtime:</strong> ${runtime || 'couple of years'}</p>
