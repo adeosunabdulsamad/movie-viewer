@@ -11,7 +11,7 @@ const searchInput = document.getElementById('searchInput');
 const categoryTitle = document.getElementById('categoryTitle');
 const categoryButtons = document.querySelectorAll('[data-category]');
 const searchParam = document.getElementById('search_param');
-
+const seriesMovies = document.getElementById('series_movies');
 const options = {
   headers: {
     accept: 'application/json',
@@ -44,8 +44,9 @@ loadMovies('popular');
         searchInput.placeholder = `Search for ${searchParam.value}......`;
         SEARCH_URL = `https://api.themoviedb.org/3/search/${searchParam.value}`;
         LOAD_URL = `https://api.themoviedb.org/3/${searchParam.value}`;
+        seriesMovies.textContent = searchParam.value;
+        // categoryTitle.textContent = category === 'popular' ? `Popular ${searchParam.value}s` : `Top Rated ${searchParam.value}s`;
     });
-
 categoryButtons.forEach(btn => {
   btn.addEventListener('click', () => {
     const category = btn.dataset.category;
@@ -64,7 +65,7 @@ searchForm.addEventListener('submit', (e) => {
 async function loadMovies(category) {
   loading.style.display = 'block';
   moviesGrid.innerHTML = '';
-  categoryTitle.textContent = category === 'popular' ? 'Popular Movies' : 'Top Rated Movies';
+  categoryTitle.textContent = category === 'popular' ? `Popular ${searchParam.value} shows` : `Top Rated ${searchParam.value} shows`;
   
   try {
     const res = await fetch(`${LOAD_URL}/${category}?language=en-US&page=1`, options);
@@ -109,12 +110,23 @@ function displayMovies(movies) {
     const releaseDate = movie.release_date || movie.first_air_date || '';
     const year = releaseDate ? new Date(releaseDate).getFullYear() : '';
     const movieName = movie.title || movie.name;
+    const type = movie.title ? 'movie' : 'tv';
     
     return `
       <div class="col">
-        <div class="card bg-dark text-white h-100 movie-card" onclick="showDetails(${movie.id})">
-          <div class="position-relative">
-            <img src="${poster}" class="card-img-top" alt="${movie.title}">
+        <div class="card bg-dark text-white h-100 movie-card" 
+             data-movie-id="${movie.id}" 
+             data-movie-type="${type}"
+             onclick="showDetails(${movie.id}, '${type}')">
+          <div class="position-relative movie-poster-container">
+            <img src="${poster}" class="card-img-top movie-poster" alt="${movieName}">
+            <div class="trailer-overlay" style="display: none;">
+              <iframe class="trailer-iframe" 
+                      frameborder="0" 
+                      allow="autoplay; encrypted-media" 
+                      allowfullscreen>
+              </iframe>
+            </div>
             <span class="movie-rating text-warning">
               <i class="bi bi-star-fill"></i> ${rating}
             </span>
@@ -127,6 +139,8 @@ function displayMovies(movies) {
       </div>
     `;
   }).join('');
+  
+  addHoverTrailerListeners();
 }
 
 async function showDetails(id) {
@@ -180,4 +194,50 @@ async function showDetails(id) {
     console.error(err);
     alert('Calm down, I am working on It!');
   }
+}
+
+function addHoverTrailerListeners() {
+  const movieCards = document.querySelectorAll('.movie-card');
+  const trailerCache = {};
+  
+  movieCards.forEach(card => {
+    let hoverTimer = null;
+    const movieId = card.dataset.movieId;
+    const movieType = card.dataset.movieType;
+    const posterContainer = card.querySelector('.movie-poster-container');
+    const poster = card.querySelector('.movie-poster');
+    const trailerOverlay = card.querySelector('.trailer-overlay');
+    const trailerIframe = card.querySelector('.trailer-iframe');
+    
+    card.addEventListener('mouseenter', async () => {
+      hoverTimer = setTimeout(async () => {
+        if (!trailerCache[movieId]) {
+          try {
+            const videosRes = await fetch(`${BASE_URL}/${movieType}/${movieId}/videos?language=en-US`, options);
+            const videosData = await videosRes.json();
+            const trailer = videosData.results.find(vid => vid.type === 'Trailer' && vid.site === 'YouTube') 
+              || videosData.results.find(vid => vid.site === 'YouTube');
+            
+            trailerCache[movieId] = trailer ? trailer.key : null;
+          } catch (err) {
+            console.error('Failed to load trailer:', err);
+            trailerCache[movieId] = null;
+          }
+        }
+        
+        if (trailerCache[movieId]) {
+          trailerIframe.src = `https://www.youtube.com/embed/${trailerCache[movieId]}?autoplay=1&mute=1&controls=0&loop=1&playlist=${trailerCache[movieId]}`;
+          poster.style.opacity = '0';
+          trailerOverlay.style.display = 'block';
+        }
+      }, 500);
+    });
+    
+    card.addEventListener('mouseleave', () => {
+      clearTimeout(hoverTimer);
+      trailerIframe.src = '';
+      poster.style.opacity = '1';
+      trailerOverlay.style.display = 'none';
+    });
+  });
 }
