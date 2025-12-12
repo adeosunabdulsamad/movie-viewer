@@ -41,7 +41,7 @@ if (!currentUser) {
 loadMovies('popular');
 
  searchParam.addEventListener('change', function() {
-        searchInput.placeholder = `Search for ${searchParam.value}......`;
+        searchInput.placeholder = `Search for ${searchParam.value} shows......`;
         SEARCH_URL = `https://api.themoviedb.org/3/search/${searchParam.value}`;
         LOAD_URL = `https://api.themoviedb.org/3/${searchParam.value}`;
         seriesMovies.textContent = searchParam.value;

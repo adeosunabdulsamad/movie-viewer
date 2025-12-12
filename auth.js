@@ -49,6 +49,7 @@ loginForm.addEventListener('submit', (e) => {
   
   if (user) {
     localStorage.setItem('currentUser', JSON.stringify(user));
+    alert(`Welcome, ${user.name}`)
     window.location.href = 'index.html';
   } else {
     alert('Invalid email or password!');
